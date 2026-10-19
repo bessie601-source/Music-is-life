@@ -405,7 +405,10 @@ function parseBandcampEmbed(code) {
 }
 
 function embedSrc(item) {
-  return `https://bandcamp.com/EmbeddedPlayer/${item.type}=${item.id}/size=large/bgcol=ffffff/linkcol=ff5a5f/artwork=small/transparent=true/`;
+  // Bandcamp picks its text colour from bgcol, so match the app's theme.
+  const dark = !matchMedia('(prefers-color-scheme: light)').matches;
+  const colors = dark ? 'bgcol=221c2b/linkcol=dab080' : 'bgcol=fffaf2/linkcol=9e4479';
+  return `https://bandcamp.com/EmbeddedPlayer/${item.type}=${item.id}/size=large/${colors}/artwork=small/`;
 }
 
 function renderBandcamp() {
