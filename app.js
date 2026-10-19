@@ -528,7 +528,7 @@ function renderBandcamp() {
       el('div', { class: 'title' }, item.title),
       el('iframe', { src: embedSrc(item), title: item.title, loading: 'lazy', seamless: true }),
       el('div', { class: 'album-actions' },
-        item.url && el('a', { class: 'btn primary', href: item.url, target: '_blank', rel: 'noopener' }, 'Get it on Bandcamp ↗'),
+        item.url && el('a', { class: 'btn bc-login', href: item.url, target: '_blank', rel: 'noopener' }, el('img', { class: 'bc-logo', src: 'bandcamp-logo.svg', alt: '', width: 20, height: 20 }), 'Get it on Bandcamp ↗'),
         el('button', { class: 'btn', onclick: () => { storeBandcamp(loadBandcamp().filter((i) => i.id !== item.id)); renderBandcamp(); } }, 'Remove')))));
 }
 

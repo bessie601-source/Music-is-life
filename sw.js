@@ -1,8 +1,8 @@
 // Caches the app shell so the app opens offline. Network first, so
 // updates reach users as soon as they're online. Music saved to the
 // in-app library lives in IndexedDB, not here.
-const CACHE = 'mil-shell-v6';
-const SHELL = ['./', 'index.html', 'style.css', 'app.js', 'manifest.webmanifest', 'icon.svg'];
+const CACHE = 'mil-shell-v7';
+const SHELL = ['./', 'index.html', 'style.css', 'app.js', 'manifest.webmanifest', 'icon.svg', 'bandcamp-logo.svg'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
