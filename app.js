@@ -194,16 +194,18 @@ async function openAlbum(id) {
 
 // Track buttons sit on a second row that opens when the track is tapped,
 // so they don't squeeze the song name on narrow screens.
-function toggleTrackRow(e) {
+// Tapping a closed track also plays it; tapping an open one just closes it.
+function tapTrack(e, play) {
   if (e.target.closest('.t-actions')) return;
   const row = e.currentTarget;
   const open = !row.classList.contains('open');
   document.querySelectorAll('.track.open').forEach((r) => r.classList.remove('open'));
   row.classList.toggle('open', open);
+  if (open) play();
 }
 
 function trackRow(track, list, index, isSaved) {
-  return el('li', { class: 'track', 'data-id': track.id, onclick: toggleTrackRow },
+  return el('li', { class: 'track', 'data-id': track.id, onclick: (e) => tapTrack(e, () => playQueue(list, index)) },
     el('span', { class: 't-num' }, track.num),
     el('span', { class: 't-name', title: track.title },
       track.title, track.artist !== track.albumArtist && el('small', {}, track.artist)),
@@ -375,7 +377,7 @@ async function renderLibrary() {
     return;
   }
   box.replaceChildren(el('ol', { class: 'tracks' }, items.map((t, i) =>
-    el('li', { class: 'track', 'data-id': t.id, onclick: toggleTrackRow },
+    el('li', { class: 'track', 'data-id': t.id, onclick: (e) => tapTrack(e, () => playQueue(items, i)) },
       el('span', { class: 't-num' }, i + 1),
       el('span', { class: 't-name', title: t.title }, t.title, el('small', {}, `${t.artist} · ${t.album}`)),
       el('span', { class: 't-len' }, t.length),
@@ -431,6 +433,40 @@ function highlightPlaying() {
   document.querySelectorAll('.track').forEach((row) => row.classList.toggle('playing', row.dataset.id === id));
 }
 
+// ---------- Theme ----------
+// Auto follows the device's light/dark setting; the button cycles
+// Auto → Light → Dark and remembers the choice on this device.
+
+const THEMES = { auto: ['◐', 'Theme: auto (follows your device)'], light: ['☀︎', 'Theme: light'], dark: ['☾', 'Theme: dark'] };
+
+function currentTheme() {
+  return document.documentElement.dataset.theme || 'auto';
+}
+
+function isDarkTheme() {
+  const theme = currentTheme();
+  return theme === 'auto' ? !matchMedia('(prefers-color-scheme: light)').matches : theme === 'dark';
+}
+
+function setTheme(theme) {
+  if (theme === 'auto') delete document.documentElement.dataset.theme;
+  else document.documentElement.dataset.theme = theme;
+  try { theme === 'auto' ? localStorage.removeItem('theme') : localStorage.setItem('theme', theme); } catch {}
+  const [icon, label] = THEMES[theme];
+  const btn = $('#theme-btn');
+  btn.textContent = icon;
+  btn.title = label;
+  btn.setAttribute('aria-label', `${label}. Tap to change.`);
+  $('meta[name="theme-color"]').content = getComputedStyle(document.body).backgroundColor;
+}
+
+$('#theme-btn').addEventListener('click', () => {
+  const order = Object.keys(THEMES);
+  setTheme(order[(order.indexOf(currentTheme()) + 1) % order.length]);
+  if (!$('#view-bandcamp').hidden) renderBandcamp();
+});
+setTheme(currentTheme());
+
 // ---------- Bandcamp ----------
 // Bandcamp has no public search API and doesn't allow downloading outside its
 // site, so search opens on Bandcamp and saved albums use its official player.
@@ -475,8 +511,7 @@ function parseBandcampEmbed(code) {
 
 function embedSrc(item) {
   // Bandcamp picks its text colour from bgcol, so match the app's theme.
-  const dark = !matchMedia('(prefers-color-scheme: light)').matches;
-  const colors = dark ? 'bgcol=221c2b/linkcol=dab080' : 'bgcol=fffaf2/linkcol=9e4479';
+  const colors = isDarkTheme() ? 'bgcol=221c2b/linkcol=dab080' : 'bgcol=fffaf2/linkcol=9e4479';
   return `https://bandcamp.com/EmbeddedPlayer/${item.type}=${item.id}/size=large/${colors}/artwork=small/`;
 }
 

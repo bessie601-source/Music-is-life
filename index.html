@@ -10,10 +10,15 @@
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon.svg">
   <link rel="stylesheet" href="style.css">
+  <script>
+    // Apply the saved theme before the page draws, so it doesn't flash.
+    try { const t = localStorage.getItem('theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch {}
+  </script>
 </head>
 <body>
   <header class="top">
     <h1 class="brand"><img src="icon.svg" alt="" width="28" height="28"> Music is Life</h1>
+    <button id="theme-btn" class="theme-btn" type="button"></button>
     <nav class="tabs" role="tablist">
       <button class="tab active" data-view="search" role="tab">Discover</button>
       <button class="tab" data-view="library" role="tab">My Library <span id="lib-count" class="badge"></span></button>
