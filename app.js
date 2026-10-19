@@ -46,6 +46,13 @@ function toast(msg) {
   toast.timer = setTimeout(() => (t.hidden = true), 3500);
 }
 
+function toSeconds(len) {
+  if (!len) return -1;
+  const parts = String(len).split(':').map(Number);
+  const secs = parts.reduce((total, n) => total * 60 + n, 0);
+  return Number.isFinite(secs) ? Math.round(secs) : -1;
+}
+
 function formatLength(len) {
   if (!len) return '';
   if (String(len).includes(':')) return len;
@@ -155,6 +162,7 @@ async function openAlbum(id) {
     album,
     albumArtist: artist,
     length: formatLength(f.length),
+    seconds: toSeconds(f.length),
     ext: f.name.split('.').pop(),
     url: fileUrl(id, f.name),
     art: thumb(id),
@@ -176,6 +184,7 @@ async function openAlbum(id) {
           el('a', { href: `${IA}/details/${encodeURIComponent(id)}`, target: '_blank', rel: 'noopener' }, 'Source page')),
         tracks.length > 0 && el('div', { class: 'album-actions' },
           el('button', { class: 'btn primary', onclick: () => playQueue(tracks, 0) }, '▶ Play all'),
+          el('button', { class: 'btn', title: 'Save a playlist that opens in VLC', onclick: () => saveVlcPlaylist(tracks, album) }, 'Open album in VLC'),
           el('button', { class: 'btn', onclick: (e) => saveAll(tracks, e.currentTarget) }, '＋ Save all to library')))),
     tracks.length
       ? el('ol', { class: 'tracks' }, tracks.map((t, i) => trackRow(t, tracks, i, saved.has(t.id))))
@@ -197,6 +206,7 @@ function trackRow(track, list, index, isSaved) {
         'aria-label': 'Save to library',
         onclick: (e) => saveToLibrary(track, e.currentTarget),
       }, isSaved ? '✓' : '＋'),
+      el('button', { class: 'icon-btn vlc', title: 'Open in VLC', 'aria-label': 'Open in VLC', onclick: () => openInVlc(track) }, 'VLC'),
       el('button', { class: 'icon-btn', title: 'Download to device', 'aria-label': 'Download', onclick: (e) => downloadToDevice(track, e.currentTarget) }, '⬇')));
 }
 
@@ -230,6 +240,55 @@ async function downloadToDevice(track, btn) {
   } finally {
     if (btn) btn.disabled = false;
   }
+}
+
+// ---------- VLC ----------
+// Phones open a single stream straight in the VLC app. Browsers can't hand a
+// whole album to VLC, so albums (and every track on a computer) are saved as
+// an .m3u playlist that VLC opens.
+
+const isAndroid = /Android/i.test(navigator.userAgent);
+const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const VLC_STORE = isIOS
+  ? 'https://apps.apple.com/app/vlc-media-player/id650377962'
+  : 'https://play.google.com/store/apps/details?id=org.videolan.vlc';
+
+function vlcLink(url) {
+  if (isAndroid) {
+    const { host, pathname, search } = new URL(url);
+    return `intent://${host}${pathname}${search}#Intent;scheme=https;package=org.videolan.vlc;type=audio/*;S.browser_fallback_url=${encodeURIComponent(VLC_STORE)};end`;
+  }
+  if (isIOS) return `vlc-x-callback://x-callback-url/stream?url=${encodeURIComponent(url)}`;
+  return null;
+}
+
+function openInVlc(track) {
+  const link = vlcLink(track.url);
+  if (!link) {
+    saveVlcPlaylist([track], track.title);
+    return;
+  }
+  $('#audio').pause();
+  // If VLC isn't installed, iOS stays on this page instead of switching apps.
+  const timer = setTimeout(() => {
+    if (document.visibilityState === 'visible') toastLink("VLC didn't open. Is it installed?", 'Get VLC', VLC_STORE);
+  }, 2000);
+  document.addEventListener('visibilitychange', () => clearTimeout(timer), { once: true });
+  location.href = link;
+}
+
+function saveVlcPlaylist(tracks, name) {
+  const lines = ['#EXTM3U'];
+  for (const t of tracks) lines.push(`#EXTINF:${t.seconds ?? -1},${t.artist} - ${t.title}`, t.url);
+  saveBlob(new Blob([lines.join('\n') + '\n'], { type: 'audio/x-mpegurl' }), `${safeFilename(name)}.m3u`);
+  toast(isAndroid || isIOS
+    ? 'Playlist saved. Open it from your downloads and choose VLC.'
+    : 'Playlist saved. Open the .m3u file with VLC.');
+}
+
+function toastLink(msg, label, href) {
+  toast(msg);
+  $('#toast').append(' ', el('a', { href, target: '_blank', rel: 'noopener' }, label));
 }
 
 // ---------- Offline library (IndexedDB) ----------

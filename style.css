@@ -142,6 +142,8 @@ main { max-width: 1100px; margin: 0 auto; padding: 16px; }
 .icon-btn:hover { background: var(--surface-2); }
 .icon-btn.done { color: var(--done); border-color: var(--done); }
 .icon-btn:disabled { opacity: .5; cursor: progress; }
+.icon-btn.vlc { font-size: .62rem; font-weight: 700; letter-spacing: .02em; color: var(--accent); }
+.toast a { color: inherit; font-weight: 700; }
 
 .player {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;

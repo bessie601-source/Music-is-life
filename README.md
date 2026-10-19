@@ -16,6 +16,7 @@ All music comes from the [Internet Archive](https://archive.org), so everything 
 - Search by artist, album or genre, with a quick genre chip for each style
 - Stream whole albums with a play queue, with lock-screen and headphone controls on phones
 - **⬇ Download** saves an MP3 (or OGG/FLAC) to your device
+- **Open in VLC** hands a track straight to the VLC app on Android and iPhone. "Open album in VLC" saves an `.m3u` playlist that VLC plays (on a computer, single tracks work this way too)
 - **＋ Save to library** keeps a track inside the app so it plays **offline**
 - **Bandcamp tab** has a search button that opens Bandcamp's own results, plus albums you add from Bandcamp's embed code, with the official player and a "Get it on Bandcamp" button (enter $0 on "name your price" albums)
 - Installs like an app on phones and desktops because it's a Progressive Web App (PWA), with no app store needed
