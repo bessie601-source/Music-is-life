@@ -192,10 +192,20 @@ async function openAlbum(id) {
   highlightPlaying();
 }
 
+// Track buttons sit on a second row that opens when the track is tapped,
+// so they don't squeeze the song name on narrow screens.
+function toggleTrackRow(e) {
+  if (e.target.closest('.t-actions')) return;
+  const row = e.currentTarget;
+  const open = !row.classList.contains('open');
+  document.querySelectorAll('.track.open').forEach((r) => r.classList.remove('open'));
+  row.classList.toggle('open', open);
+}
+
 function trackRow(track, list, index, isSaved) {
-  return el('li', { class: 'track', 'data-id': track.id },
+  return el('li', { class: 'track', 'data-id': track.id, onclick: toggleTrackRow },
     el('span', { class: 't-num' }, track.num),
-    el('span', { class: 't-name', title: track.title, onclick: () => playQueue(list, index) },
+    el('span', { class: 't-name', title: track.title },
       track.title, track.artist !== track.albumArtist && el('small', {}, track.artist)),
     el('span', { class: 't-len' }, track.length),
     el('span', { class: 't-actions' },
@@ -361,13 +371,13 @@ async function renderLibrary() {
   const box = $('#library');
   const items = (await allLibrary()).sort((a, b) => b.savedAt - a.savedAt);
   if (!items.length) {
-    box.replaceChildren(el('p', { class: 'status' }, 'Your library is empty. Tap ＋ on any track to save it here.'));
+    box.replaceChildren(el('p', { class: 'status' }, 'Your library is empty. Tap a track, then ＋ to save it here.'));
     return;
   }
   box.replaceChildren(el('ol', { class: 'tracks' }, items.map((t, i) =>
-    el('li', { class: 'track', 'data-id': t.id },
+    el('li', { class: 'track', 'data-id': t.id, onclick: toggleTrackRow },
       el('span', { class: 't-num' }, i + 1),
-      el('span', { class: 't-name', title: t.title, onclick: () => playQueue(items, i) }, t.title, el('small', {}, `${t.artist} · ${t.album}`)),
+      el('span', { class: 't-name', title: t.title }, t.title, el('small', {}, `${t.artist} · ${t.album}`)),
       el('span', { class: 't-len' }, t.length),
       el('span', { class: 't-actions' },
         el('button', { class: 'icon-btn', title: 'Play', 'aria-label': 'Play', onclick: () => playQueue(items, i) }, '▶'),
