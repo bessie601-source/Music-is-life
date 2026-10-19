@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#17131d">
+  <meta name="description" content="Search, stream and download free, legal music. No account, no subscription.">
+  <title>Music is Life</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <h1 class="brand"><img src="icon.svg" alt="" width="28" height="28"> Music is Life</h1>
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-view="search" role="tab">Discover</button>
+      <button class="tab" data-view="library" role="tab">My Library <span id="lib-count" class="badge"></span></button>
+      <button class="tab" data-view="bandcamp" role="tab">Bandcamp</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="view-search" class="view">
+      <form id="search-form" class="search">
+        <input id="q" type="search" placeholder="Search artists, albums, genres…" autocomplete="off" aria-label="Search">
+        <select id="source" aria-label="Source">
+          <option value="all">All free music</option>
+          <option value="cc">Creative Commons</option>
+          <option value="live">Live concerts</option>
+          <option value="netlabels">Netlabel releases</option>
+          <option value="78s">Vintage 78rpm records</option>
+        </select>
+        <button type="submit" class="btn primary">Search</button>
+      </form>
+      <div class="chips" id="chips"></div>
+      <p class="status"><span id="status" role="status"></span> <a id="bc-search-link" class="ext" href="https://bandcamp.com/search?item_type=a" target="_blank" rel="noopener">Search Bandcamp ↗</a></p>
+      <div id="results" class="grid"></div>
+      <button id="more" class="btn more" hidden>Load more</button>
+    </section>
+
+    <section id="view-album" class="view" hidden>
+      <button id="back" class="btn ghost">← Back</button>
+      <div id="album"></div>
+    </section>
+
+    <section id="view-library" class="view" hidden>
+      <p class="hint">Tracks saved here play offline inside the app. Use ⬇ to save a copy to your device's Downloads.</p>
+      <div id="library"></div>
+    </section>
+    <section id="view-bandcamp" class="view" hidden>
+      <p class="hint">Bandcamp doesn't allow other apps to search or download its music, so search opens on Bandcamp. Many artists offer <strong>"name your price"</strong> albums: enter <strong>$0</strong> on the album's Bandcamp page to download them free.</p>
+      <form id="bc-search-form" class="search">
+        <input id="bc-q" type="search" placeholder="Search Bandcamp…" autocomplete="off" aria-label="Search Bandcamp">
+        <button type="submit" class="btn">Search Bandcamp ↗</button>
+      </form>
+      <details class="bc-add">
+        <summary>＋ Add a Bandcamp album to this tab</summary>
+        <ol class="hint">
+          <li>On the album's Bandcamp page, tap <strong>Share / Embed</strong>, then <strong>Embed this album</strong>.</li>
+          <li>Choose any player style, then copy the embed code.</li>
+          <li>Paste the code below.</li>
+        </ol>
+        <form id="bc-add-form">
+          <textarea id="bc-code" rows="4" placeholder='&lt;iframe src="https://bandcamp.com/EmbeddedPlayer/album=…' aria-label="Bandcamp embed code"></textarea>
+          <button type="submit" class="btn primary">Add album</button>
+        </form>
+      </details>
+      <div id="bc-list" class="bc-list"></div>
+    </section>
+  </main>
+
+  <footer class="player" id="player" hidden>
+    <div class="now">
+      <img id="now-art" alt="">
+      <div class="now-text">
+        <strong id="now-title"></strong>
+        <span id="now-artist"></span>
+      </div>
+    </div>
+    <audio id="audio" controls preload="none"></audio>
+  </footer>
+
+  <div id="toast" class="toast" role="alert" hidden></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
