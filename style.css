@@ -16,8 +16,25 @@
   --radius: 12px;
   color-scheme: dark;
 }
+/* Light colours. They apply when the device is in light mode, unless the
+   theme button forces dark, or always when it forces light. */
+:root[data-theme="light"] {
+  --bg: #f6efe4;
+  --surface: #fffaf2;
+  --surface-2: #ede2d2;
+  --text: #2a2233;
+  --muted: #6b5d75;
+  --border: #e0d3c1;
+  --accent: #4f3e5e;
+  --accent-text: #f6efe4;
+  --highlight: #9e4479;
+  --done: #4a6b59;
+  --glow: rgba(40, 103, 120, .14);
+  --glow-2: rgba(218, 176, 128, .35);
+  color-scheme: light;
+}
 @media (prefers-color-scheme: light) {
-  :root {
+  :root:not([data-theme="dark"]) {
     --bg: #f6efe4;
     --surface: #fffaf2;
     --surface-2: #ede2d2;
@@ -58,6 +75,11 @@ img { display: block; }
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border);
 }
+.theme-btn {
+  margin-left: auto; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border);
+  background: var(--surface); cursor: pointer; font-size: 1rem; display: grid; place-items: center;
+}
+.theme-btn:hover { background: var(--surface-2); }
 .brand { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 1.2rem; }
 .tabs { display: flex; gap: 4px; background: var(--surface); padding: 4px; border-radius: 999px; }
 .tab { border: 0; background: none; padding: 6px 14px; border-radius: 999px; cursor: pointer; color: var(--muted); }
@@ -129,15 +151,17 @@ main { max-width: 1100px; margin: 0 auto; padding: 16px; }
 
 .tracks { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--border); }
 .track {
-  display: grid; grid-template-columns: 32px 1fr auto auto; align-items: center; gap: 10px;
-  padding: 8px 4px; border-bottom: 1px solid var(--border);
+  display: grid; grid-template-columns: 32px 1fr auto; align-items: center; gap: 4px 10px;
+  padding: 8px 4px; border-bottom: 1px solid var(--border); cursor: pointer;
 }
+.track.open { background: var(--surface); }
 .track.playing .t-name { color: var(--highlight); }
 .t-num { color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
-.t-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.t-name { min-width: 0; overflow-wrap: anywhere; }
 .t-name small { display: block; color: var(--muted); }
 .t-len { color: var(--muted); font-variant-numeric: tabular-nums; font-size: .9rem; }
-.t-actions { display: flex; gap: 4px; }
+.t-actions { display: none; grid-column: 2 / -1; gap: 8px; padding-top: 4px; cursor: default; }
+.track.open .t-actions { display: flex; }
 .icon-btn {
   width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border);
   background: var(--surface); cursor: pointer; display: grid; place-items: center; font-size: .95rem;
@@ -170,6 +194,5 @@ main { max-width: 1100px; margin: 0 auto; padding: 16px; }
 @media (max-width: 520px) {
   .bc-list { grid-template-columns: 1fr; }
   .track { grid-template-columns: 24px 1fr auto; }
-  .t-len { display: none; }
   .album-head img { width: 140px; }
 }
