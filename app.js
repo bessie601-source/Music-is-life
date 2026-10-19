@@ -61,11 +61,12 @@ function safeFilename(s) {
 // ---------- Views ----------
 
 function show(view) {
-  for (const v of ['search', 'album', 'library']) $(`#view-${v}`).hidden = v !== view;
+  for (const v of ['search', 'album', 'library', 'bandcamp']) $(`#view-${v}`).hidden = v !== view;
   document.querySelectorAll('.tab').forEach((t) => {
     t.classList.toggle('active', t.dataset.view === (view === 'album' ? 'search' : view));
   });
   if (view === 'library') renderLibrary();
+  if (view === 'bandcamp') renderBandcamp();
   window.scrollTo(0, 0);
 }
 
@@ -85,6 +86,7 @@ async function search(append = false) {
     results.replaceChildren();
   }
   status.textContent = 'Searching…';
+  $('#bc-search-link').href = bandcampSearchUrl(state.query);
   more.hidden = true;
 
   const params = new URLSearchParams({ q: buildQuery(state.query, state.source), rows: PAGE_SIZE, page: state.page, output: 'json' });
@@ -359,6 +361,95 @@ function highlightPlaying() {
   const id = state.queue[state.queueIndex]?.id;
   document.querySelectorAll('.track').forEach((row) => row.classList.toggle('playing', row.dataset.id === id));
 }
+
+// ---------- Bandcamp ----------
+// Bandcamp has no public search API and doesn't allow downloading outside its
+// site, so search opens on Bandcamp and saved albums use its official player.
+
+const BC_KEY = 'bandcamp-albums';
+
+function bandcampSearchUrl(q) {
+  const params = new URLSearchParams({ item_type: 'a' });
+  if (q.trim()) params.set('q', q.trim());
+  return `https://bandcamp.com/search?${params}`;
+}
+
+function loadBandcamp() {
+  try { return JSON.parse(localStorage.getItem(BC_KEY)) || []; } catch { return []; }
+}
+
+function storeBandcamp(items) {
+  try { localStorage.setItem(BC_KEY, JSON.stringify(items)); } catch { toast("Couldn't save. Your browser may be blocking storage."); }
+}
+
+function isBandcampUrl(href) {
+  try {
+    const u = new URL(href);
+    return u.protocol === 'https:' && (u.hostname === 'bandcamp.com' || u.hostname.endsWith('.bandcamp.com'));
+  } catch { return false; }
+}
+
+// Reads the album/track ID, page link and title out of Bandcamp's embed code.
+// DOMParser never runs scripts, and only the numeric ID reaches the iframe.
+function parseBandcampEmbed(code) {
+  const doc = new DOMParser().parseFromString(code, 'text/html');
+  const iframe = doc.querySelector('iframe');
+  const src = iframe?.getAttribute('src') || code;
+  const match = src.match(/bandcamp\.com\/EmbeddedPlayer\/(?:v=2\/)?(album|track)=(\d+)/);
+  if (!match) return null;
+  // Bandcamp puts its <a> link inside the <iframe>, where HTML parses it as text.
+  const inner = iframe ? new DOMParser().parseFromString(iframe.textContent, 'text/html') : doc;
+  const link = inner.querySelector('a[href]') || doc.querySelector('a[href]');
+  const href = link && isBandcampUrl(link.href) ? link.href : '';
+  return { type: match[1], id: match[2], url: href, title: link?.textContent.trim() || 'Bandcamp album' };
+}
+
+function embedSrc(item) {
+  return `https://bandcamp.com/EmbeddedPlayer/${item.type}=${item.id}/size=large/bgcol=ffffff/linkcol=ff5a5f/artwork=small/transparent=true/`;
+}
+
+function renderBandcamp() {
+  const items = loadBandcamp();
+  const box = $('#bc-list');
+  if (!items.length) {
+    box.replaceChildren(el('p', { class: 'status' }, 'No Bandcamp albums yet. Add one with the steps above.'));
+    $('.bc-add').open = true;
+    return;
+  }
+  box.replaceChildren(...items.map((item) =>
+    el('div', { class: 'bc-item' },
+      el('div', { class: 'title' }, item.title),
+      el('iframe', { src: embedSrc(item), title: item.title, loading: 'lazy', seamless: true }),
+      el('div', { class: 'album-actions' },
+        item.url && el('a', { class: 'btn primary', href: item.url, target: '_blank', rel: 'noopener' }, 'Get it on Bandcamp ↗'),
+        el('button', { class: 'btn', onclick: () => { storeBandcamp(loadBandcamp().filter((i) => i.id !== item.id)); renderBandcamp(); } }, 'Remove')))));
+}
+
+$('#bc-search-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  window.open(bandcampSearchUrl($('#bc-q').value), '_blank', 'noopener');
+});
+
+$('#bc-add-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const code = $('#bc-code').value;
+  const item = parseBandcampEmbed(code);
+  if (!item) {
+    toast(isBandcampUrl(code.trim())
+      ? 'That is a page link. Paste the embed code from Share / Embed instead.'
+      : "That doesn't look like Bandcamp embed code.");
+    return;
+  }
+  const items = loadBandcamp();
+  if (items.some((i) => i.id === item.id)) {
+    toast('That album is already in your list.');
+  } else {
+    storeBandcamp([item, ...items]);
+    toast(`Added "${item.title}"`);
+  }
+  $('#bc-code').value = '';
+  renderBandcamp();
+});
 
 // ---------- Wiring ----------
 

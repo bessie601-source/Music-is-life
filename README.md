@@ -17,6 +17,7 @@ All music comes from the [Internet Archive](https://archive.org), so everything 
 - Stream whole albums with a play queue, with lock-screen and headphone controls on phones
 - **⬇ Download** saves an MP3 (or OGG/FLAC) to your device
 - **＋ Save to library** keeps a track inside the app so it plays **offline**
+- **Bandcamp tab** has a search button that opens Bandcamp's own results, plus albums you add from Bandcamp's embed code, with the official player and a "Get it on Bandcamp" button (enter $0 on "name your price" albums)
 - Installs like an app on phones and desktops because it's a Progressive Web App (PWA), with no app store needed
 
 ## Running it
