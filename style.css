@@ -91,6 +91,9 @@ main { max-width: 1100px; margin: 0 auto; padding: 16px; }
 .status, .hint { color: var(--muted); }
 .ext { color: var(--highlight); white-space: nowrap; }
 
+/* Bandcamp's own brand colour, so the login button reads as theirs. */
+.bc-login { display: inline-flex; align-items: center; gap: 10px; background: #1da0c3; border-color: #1da0c3; color: #fff; font-weight: 600; }
+.bc-login:hover { background: #1786a4; border-color: #1786a4; }
 .bc-add { margin: 16px 0; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; }
 .bc-add summary { cursor: pointer; font-weight: 600; }
 .bc-add ol { padding-left: 20px; }
